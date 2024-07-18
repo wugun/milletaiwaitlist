@@ -276,8 +276,8 @@ function PageHook() {
                   </div>
 
                   <div className="flex flex-col space-y-1 mt-4">
-                    <label className="font-medium text-gray-700">Role</label>
-                    <div className="flex justify-between mt-2">
+                    <label htmlFor="role" className="font-medium text-gray-700">Role</label>
+                    <div className="flex space-x-4">
                       <label className="flex items-center space-x-2">
                         <input
                           type="radio"
