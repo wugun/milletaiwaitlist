@@ -1,16 +1,40 @@
-import mongoose from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
-const { Schema } = mongoose;
-
-const postSchema = new Schema(
-  {
-    email: {
-      type: String,
-      required: true,
-    },
+const contactSchema = new Schema({
+  firstname: {
+    type: String,
+    required: [true, "First name is required."],
+    trim: true,
+    minLength: [2, "Name must be larger than 2 characters"],
+    maxLength: [50, "Name must be lesser than 50 characters"],
   },
-  { timestamps: true }
-);
 
-//If the Post collection does not exist create a new one.
-export default mongoose.models.Post || mongoose.model("Post", postSchema);
+  lastname: {
+    type: String,
+    required: [true, "Last name is required."],
+    trim: true,
+    minLength: [2, "Name must be larger than 2 characters"],
+    maxLength: [50, "Name must be lesser than 50 characters"],
+  },
+
+  email: {
+    type: String,
+    required: [true, "Email is required."],
+    match: [/^[\w.%+-]+@[\w.-]+\.[A-Za-z]{2,}$/i, "Invalid email address"],
+  },
+
+  role: {
+    type: String,
+    required: [true, "Role is required."],
+  },
+
+  date: {
+    type: Date,
+    default: Date.now,
+  },
+});
+
+const Contact =
+  mongoose.models.Contact || mongoose.model("Contact", contactSchema);
+
+export default Contact;

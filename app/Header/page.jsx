@@ -267,7 +267,8 @@ const Switch = ({ checked, setChecked }) => {
           id="checkbox"
         />
       </label>
-    </form>
+    </form> 
+    
   );
 };
 

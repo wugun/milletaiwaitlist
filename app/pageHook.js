@@ -1,7 +1,5 @@
 "use client";
 
-// I WANTED USING ZOD FOR ERROR HANDLING BUT ITS A MINI PROJECT
-// PROBABLY NEXT TUTORIAL
 import { PiWarningThin } from "react-icons/pi";
 import { TbArrowsJoin2 } from "react-icons/tb";
 
@@ -54,35 +52,65 @@ const accordingData = [
   },
 ];
 
-// useForm
 import { useForm, Controller } from "react-hook-form";
-// import { zodResolver } from "@hookform/resolvers/zod";
-// Zod
+
 import { z } from "zod";
 
-// const emailSchema = z.object({
-//   email: z.string().email()
-//   .min(10, "Email must at least be 5-7 characters long"),
-// });
 
 function PageHook() {
   const [isOpen, setIsOpen] = useState(false);
   const [isOpenModel, setIsOpenModel] = useState(false);
-  const [hoveredIndex, setHoveredIndex] = useState(null);
+
+  const [firstname, setFirstname] = useState("");
+  const [lastname, setLastname] = useState("");
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState("");
+  const [error, setError] = useState([]);
+  const [success, setSuccess] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    console.log("First name: ", firstname);
+    console.log("Last name: ", lastname);
+    console.log("Email: ", email);
+    console.log("Role: ", role);
+
+    const res = await fetch("api/email", {
+      method: "POST",
+      headers: {
+        "Content-type": "application/json",
+      },
+      body: JSON.stringify({
+        firstname,
+        lastname,
+        email,
+        role,
+      }),
+    });
+
+    const { msg, success } = await res.json();
+    setError(msg);
+    setSuccess(success);
+
+    if (success) {
+      setFirstname("");
+      setLastname("");
+      setEmail("");
+      setRole("");
+    }
+  };
 
   const springConfig = { stiffness: 100, damping: 5 };
   const x = useMotionValue(0); // going to set this value on mouse move
 
   const [activeIndex, setActiveIndex] = useState(null);
 
-  // set acitve state
   const handleActiveState = (index) => {
     setActiveIndex((prevIndex) => (prevIndex === index ? null : index));
   };
 
   const {
-    // register,
-    handleSubmit,
     control,
     formState: { errors, isSubmitting, isDirty, isValid },
     reset,
@@ -100,11 +128,6 @@ function PageHook() {
     springConfig
   );
 
-  const handleMouseMove = (event) => {
-    const halfWidth = event.target.offsetWidth / 2;
-    x.set(event.nativeEvent.offsetX - halfWidth); // set the x value, which is then used in transform and rotate
-  };
-
   const validateEmail = (mail) => {
     const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
     return emailRegex.test(mail);
@@ -115,26 +138,6 @@ function PageHook() {
     setTimeout(() => {
       setIsOpenModel(false);
     }, 4000);
-  };
-
-  const onSubmit = async (data) => {
-    try {
-      let res = await fetch("/api/email", {
-        method: "POST",
-        body: JSON.stringify(data.email),
-      });
-      if (res.ok) {
-        reset();
-        handleOpenModel();
-      }
-
-      if (!res.ok) {
-        reset();
-        throw new Error({ message: "Email already exists" });
-      }
-    } catch (error) {
-      console.log(error);
-    }
   };
 
   return (
@@ -211,70 +214,136 @@ function PageHook() {
                 {errors.email.message}
               </p>
             )}
-          </div>
-          <div className="w-full   space-y-2 ">
-            <form
-              onSubmit={handleSubmit(onSubmit)}
-              className="flex flex-col lg:flex-row mx-auto lg:space-x-2 max-w-lg"
-            >
-              {/* <input
-                {...register("email", {
-                  minLength: {
-                    value: 13,
-                    message: "Email must at least be 5-7 characters long",
-                  },
-                })}
-                className={` flex-1 py-2.5  outline-none focus:border-2 focus:border-neutral-100 dark:border dark:bg-opacity-20 shadow-md border 
-                border-neutral-400   dark:text-white dark:border-white/20 placeholder:text-neutral-500  pl-5 rounded-lg focus-within:border-none ${
-                  isValid ? "bg-green-500" : " "
-                } `}
-                placeholder="Your Email Address"
-                type="email"
-              /> */}
+            </div>
+            <div className="flex justify-center items-center h-screen">
+              <div className="w-full max-w-md bg-transparent rounded-lg shadow-lg p-6">
+                <form
+                  onSubmit={handleSubmit}
+                  className="space-y-4"
+                >
+                  <div className="flex flex-col space-y-1">
+                    <label htmlFor="firstname" className="font-medium text-gray-700">First Name</label>
+                    <input
+                      onChange={(e) => setFirstname(e.target.value)}
+                      className={`py-2.5 outline-none focus:border-2 focus:border-neutral-100 dark:border bg-opacity-20 shadow-md border 
+                        border-neutral-400 dark:text-white dark:border-white/20 placeholder:text-neutral-500 pl-5 rounded-lg focus-within:border-none ${
+                        isDirty && !isValid
+                          ? "bg-[#f5a524] "
+                          : isDirty && isValid
+                          ? "bg-green-500"
+                          : ""
+                      }`}
+                      value={firstname}
+                      type="text"
+                      id="firstname"
+                    />
+                  </div>
 
-              <Controller
-                name="email"
-                control={control}
-                defaultValue=""
-                render={({ field }) => (
-                  <input
-                    {...field}
-                    type="email"
-                    placeholder="Email"
-                    className={` flex-1 py-2.5  outline-none focus:border-2 focus:border-neutral-100 dark:border bg-opacity-20 shadow-md border 
-                    
-                    border-neutral-400   dark:text-white dark:border-white/20 placeholder:text-neutral-500  pl-5 rounded-lg focus-within:border-none ${
-                      isDirty && !isValid
-                        ? "bg-[#f5a524] "
-                        : isDirty && isValid
-                        ? "bg-green-500"
-                        : ""
-                    }`}
-                  />
+                  <div className="flex flex-col space-y-1">
+                    <label htmlFor="lastname" className="font-medium text-gray-700">Last Name</label>
+                    <input
+                      onChange={(e) => setLastname(e.target.value)}
+                      className={`py-2.5 outline-none focus:border-2 focus:border-neutral-100 dark:border bg-opacity-20 shadow-md border 
+                        border-neutral-400 dark:text-white dark:border-white/20 placeholder:text-neutral-500 pl-5 rounded-lg focus-within:border-none ${
+                        isDirty && !isValid
+                          ? "bg-[#f5a524] "
+                          : isDirty && isValid
+                          ? "bg-green-500"
+                          : ""
+                      }`}
+                      value={lastname}
+                      type="text"
+                      id="lastname"
+                    />
+                  </div>
+
+                  <div className="flex flex-col space-y-1">
+                    <label htmlFor="email" className="font-medium text-gray-700">Email</label>
+                    <input
+                      onChange={(e) => setEmail(e.target.value)}
+                      className={`py-2.5 outline-none focus:border-2 focus:border-neutral-100 dark:border bg-opacity-20 shadow-md border 
+                        border-neutral-400 dark:text-white dark:border-white/20 placeholder:text-neutral-500 pl-5 rounded-lg focus-within:border-none ${
+                        isDirty && !isValid
+                          ? "bg-[#f5a524] "
+                          : isDirty && isValid
+                          ? "bg-green-500"
+                          : ""
+                      }`}
+                      value={email}
+                      type="text"
+                      id="email"
+                    />
+                  </div>
+
+                  <div className="flex flex-col space-y-1 mt-4">
+                    <label className="font-medium text-gray-700">Role</label>
+                    <div className="flex justify-between mt-2">
+                      <label className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          name="role"
+                          value="Influencer"
+                          checked={role === "Influencer"}
+                          onChange={(e) => setRole(e.target.value)}
+                          className="form-radio text-blue-500"
+                        />
+                        <span className="ml-2 text-gray-700">Influencer</span>
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          name="role"
+                          value="Brand"
+                          checked={role === "Brand"}
+                          onChange={(e) => setRole(e.target.value)}
+                          className="form-radio text-blue-500"
+                        />
+                        <span className="ml-2 text-gray-700">Brand</span>
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          name="role"
+                          value="Other"
+                          checked={role === "Other"}
+                          onChange={(e) => setRole(e.target.value)}
+                          className="form-radio text-blue-500"
+                        />
+                        <span className="ml-2 text-gray-700">Other</span>
+                      </label>
+                    </div>
+                    {errors.role && <p className="text-red-600">{errors.role}</p>}
+                  </div>
+
+                  <div className="flex justify-center">
+                    <button
+                      disabled={isSubmitting}
+                      className="flex items-center justify-center gap-x-3 bg-gradient-to-tr from-black from-50% via-black/40 to-gray-600/40 via-45% border-t-gray-700 disabled:cursor-not-allowed w-1/2 shadow-md border border-b-0 border-r-0 border-l-0 bg-black mt-4 lg:mt-0 rounded-md px-2 py-2.5 font-InterMedium text-sm text-gray-200 dark:text-gray-500"
+                      type="submit"
+                    >
+                      {isSubmitting ? "Loading" : <span className="shrink-0">Join Waitlist</span>}
+                    </button>
+                  </div>
+                </form>
+
+                {error && (
+                  <div className="bg-transparent px-4 py-2 rounded-md mt-4 flex flex-col justify-center items-center">
+                    {error.map((e, index) => (
+                     <div
+                      key={index}
+                      className={`${
+                        success ? "text-green-800" : "text-red-600"
+                      } px-5 py-2 text-center`}
+                     >
+                        {success ? "You're on the waitlist! We'll reach out shortly." : e}
+                     </div>
+                    ))}
+                  </div>
                 )}
-                rules={{
-                  required: "Email is required!",
-                  validate: (value) =>
-                    validateEmail(value) || " Invalid email format",
-                }}
-              />
-
-              <button
-                disabled={isSubmitting}
-                className="flex items-center justify-center gap-x-3 bg-gradient-to-tr from-black from-50% via-black/40 to-gray-600/40 via-45% border-t-gray-700  disabled:cursor-not-allowed lg:w-36 shadow-md  border border-b-0 border-r-0 border-l-0 bg-black  mt-4 lg:mt-0 rounded-md px-2 py-2.5 w-full  font-InterMedium text-sm text-gray-200 dark:text-gray-500 "
-                type="submit"
-              >
-                <TbArrowsJoin2 className="text-[#383127]" />
-                {isSubmitting ? (
-                  "loading "
-                ) : (
-                  <span className="shrink-0">Join Waitlist</span>
-                )}
-              </button>
+              </div>
+            </div>
 
 
-            </form>
-          </div>
           <div>
           <h1 className="text-center text-lg font-bold sm:text-3xl xl:text-4xl mt-16 mb-8 bg-clip-text text-transparent dark:bg-gradient-to-r bg-gradient-to-tr dark:from-white from-black to-neutral-600 dark:to-neutral-800 capitalize md:max-w-2xl lg:max-w-3xl mx-auto">
               Frequently Asked Questions

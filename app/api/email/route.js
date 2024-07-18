@@ -1,35 +1,29 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/db/mongodb";
-import Email from "@/models/Email";
-
-export async function GET(req) {
-  return NextResponse.json({ message: "Email already exist" }, { status: 500 });
-}
+import Contact from "@/models/Email";
+import mongoose from "mongoose";
 
 export async function POST(req) {
-  await connectDB();
+  const { firstname, lastname, email, role } = await req.json();
 
   try {
-    const email = await req.json();
-    if (!email) {
-      return new NextResponse("Missing field", { status: 400 });
-    }
+    await connectDB();
+    await Contact.create({ firstname, lastname, email, role });
 
-    const checkEmail = await Email.findOne({ email: email });
-
-    if (checkEmail) {
-      // return new Error("Email already exist");
-      return NextResponse.json(
-        { message: "Email already exist" },
-        { status: 500 }
-      );
-      console.log("Hey");
-    }
-
-    const newEmail = new Email({ email });
-
-    return NextResponse.json(await newEmail.save(), { status: 200 });
+    return NextResponse.json({
+      msg: ["Message sent successfully"],
+      success: true,
+    });
   } catch (error) {
-    console.log(error);
+    if (error instanceof mongoose.Error.ValidationError) {
+      let errorList = [];
+      for (let e in error.errors) {
+        errorList.push(error.errors[e].message);
+      }
+      console.log(errorList);
+      return NextResponse.json({ msg: errorList });
+    } else {
+      return NextResponse.json({ msg: ["Unable to send message."] });
+    }
   }
 }
